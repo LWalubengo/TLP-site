@@ -130,8 +130,6 @@ const ADDONS = [
   { id: 'unveiling', icon: 'candle', t: 'The Unveiling evening', d: 'A hosted evening to premiere the film and present the book.' },
   { id: 'box', icon: 'gift', t: 'Keepsake legacy box', d: 'The book, the film and chosen printed photographs, presented together.' },
   { id: 'letters', icon: 'letter', t: 'Letters to the next generation', d: 'Recorded messages from the storyteller to children and grandchildren.' },
-  { id: 'language', icon: 'globe', t: 'Kiswahili or mother-tongue edition', d: 'Subtitles and a translated edition, so every generation can follow.' },
-  { id: 'restore', icon: 'restore', t: 'Photo restoration & digitisation', d: 'Old and damaged photographs and documents restored and preserved.' },
   { id: 'tree', icon: 'tree', t: 'Family tree & heritage map', d: 'An illustrated family tree and a map of the places that shaped the story.' },
   { id: 'website', icon: 'web', t: 'Private family legacy website', d: 'A password-protected page where the family can watch, read and share.' },
   { id: 'followup', icon: 'cal', t: 'The next chapter', d: 'A follow-up interview a year or more later, added to the archive.' },
@@ -207,3 +205,20 @@ if (exLineup) {
     if (rel && currentPkg === 'institution') rel.value = 'Our company or institution';
   });
 }
+
+// ---------- Sample interview: load the YouTube player on click ----------
+document.querySelectorAll('.video-slot[data-yt]').forEach(slot => {
+  slot.addEventListener('click', e => {
+    e.preventDefault();
+    const id = slot.dataset.yt;
+    const frame = document.createElement('iframe');
+    frame.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+    frame.title = 'Sample Legacy Project interview';
+    frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    frame.allowFullscreen = true;
+    const wrap = document.createElement('div');
+    wrap.className = 'video-slot playing';
+    wrap.appendChild(frame);
+    slot.replaceWith(wrap);
+  });
+});
