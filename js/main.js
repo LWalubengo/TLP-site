@@ -282,3 +282,20 @@ document.querySelectorAll('.video-slot[data-yt]').forEach(slot => {
     slot.replaceWith(wrap);
   });
 });
+
+// ---------- Archive mockup: draw a static waveform ----------
+(function () {
+  const wave = document.getElementById('mbWave');
+  if (!wave) return;
+  let seed = 7;
+  const rand = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  const bars = 64, played = 24;
+  for (let i = 0; i < bars; i++) {
+    const env = 0.35 + 0.65 * Math.abs(Math.sin(i / 7.5)) * (0.6 + 0.4 * Math.sin(i / 3.1 + 1));
+    const h = Math.max(12, Math.round(env * (0.55 + 0.45 * rand()) * 100));
+    const b = document.createElement('i');
+    b.style.height = h + '%';
+    if (i < played) b.className = 'p';
+    wave.appendChild(b);
+  }
+})();
