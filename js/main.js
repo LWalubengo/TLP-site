@@ -82,3 +82,128 @@ form.addEventListener('submit', async (e) => {
     submitBtn.disabled = false;
   }
 });
+
+// ---------- What you receive: tabs ----------
+const showTabs = Array.from(document.querySelectorAll('.show-tab'));
+function selectShowTab(tab, focus) {
+  showTabs.forEach(t => {
+    const on = t === tab;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+    t.tabIndex = on ? 0 : -1;
+    const panel = document.getElementById(t.getAttribute('aria-controls'));
+    if (panel) { panel.hidden = !on; panel.classList.toggle('active', on); }
+  });
+  if (focus) tab.focus();
+}
+showTabs.forEach((t, i) => {
+  t.tabIndex = i === 0 ? 0 : -1;
+  t.addEventListener('click', () => selectShowTab(t));
+  t.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const n = (i + (e.key === 'ArrowRight' ? 1 : -1) + showTabs.length) % showTabs.length;
+      selectShowTab(showTabs[n], true);
+    }
+  });
+});
+
+// ---------- Build your legacy explorer ----------
+const PACKAGES = {
+  conversation: { name: 'Legacy Conversation', items: [
+    ['mic', 'One 2-hour interview'], ['film', 'A story film'], ['phone', 'Two short cuts to share'],
+    ['pen', 'A 1,500–2,000 word written profile'], ['archive', 'Digital archive'] ] },
+  portrait: { name: 'Legacy Portrait', items: [
+    ['mic', 'Four 90-minute interviews'], ['film', 'A legacy film'], ['phone', 'Two short films'],
+    ['camera', 'A professional photography session'], ['book', 'A 5,000–7,000 word legacy book'], ['archive', 'Digital archive'] ] },
+  archive: { name: 'Legacy Archive', items: [
+    ['voices', '6–8 interviews, family voices included'], ['film', 'A 25–30 minute documentary'],
+    ['book', 'A 10,000–15,000 word legacy book'], ['archive', 'An expanded digital archive'] ] },
+  institution: { name: 'Legacy Institution', items: [
+    ['voices', '8–12 stakeholder interviews'], ['film', 'A 30–45 minute documentary'],
+    ['book', 'A heritage & legacy book'], ['archive', 'An institutional digital archive'] ] }
+};
+const ADDONS = [
+  { id: 'copies', icon: 'copies', t: 'Extra printed copies', d: 'More copies of the book for children, grandchildren and close friends.' },
+  { id: 'collector', icon: 'star', t: 'Collector’s edition', d: 'Cloth-bound, numbered copies made to last for generations.' },
+  { id: 'voices', icon: 'voices', t: 'Additional family voices', d: 'More interviews with family, friends or colleagues.' },
+  { id: 'unveiling', icon: 'candle', t: 'The Unveiling evening', d: 'A hosted evening to premiere the film and present the book.' },
+  { id: 'box', icon: 'gift', t: 'Keepsake legacy box', d: 'The book, the film and chosen printed photographs, presented together.' },
+  { id: 'letters', icon: 'letter', t: 'Letters to the next generation', d: 'Recorded messages from the storyteller to children and grandchildren.' },
+  { id: 'language', icon: 'globe', t: 'Kiswahili or mother-tongue edition', d: 'Subtitles and a translated edition, so every generation can follow.' },
+  { id: 'restore', icon: 'restore', t: 'Photo restoration & digitisation', d: 'Old and damaged photographs and documents restored and preserved.' },
+  { id: 'tree', icon: 'tree', t: 'Family tree & heritage map', d: 'An illustrated family tree and a map of the places that shaped the story.' },
+  { id: 'website', icon: 'web', t: 'Private family legacy website', d: 'A password-protected page where the family can watch, read and share.' },
+  { id: 'followup', icon: 'cal', t: 'The next chapter', d: 'A follow-up interview a year or more later, added to the archive.' },
+  { id: 'exhibit', icon: 'frame', t: 'Heritage exhibition panels', d: 'Printed panels telling the institution’s story for offices and anniversaries.', only: ['institution'] }
+];
+
+const exLineup = document.getElementById('exLineup');
+const exAddons = document.getElementById('exAddons');
+const exLabel = document.getElementById('exLabel');
+const exSummary = document.getElementById('exSummary');
+const exCta = document.getElementById('exCta');
+const exPkgBtns = Array.from(document.querySelectorAll('.ex-pkg'));
+let currentPkg = 'portrait';
+const chosen = new Set();
+
+const icon = id => `<svg class="ico" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+
+function renderAddons() {
+  exAddons.innerHTML = '';
+  ADDONS.forEach(a => {
+    if (a.only && !a.only.includes(currentPkg)) { chosen.delete(a.id); return; }
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ex-addon';
+    b.setAttribute('aria-pressed', chosen.has(a.id) ? 'true' : 'false');
+    b.innerHTML = `<span class="box"></span><span><b>${a.t}</b><small>${a.d}</small></span>`;
+    b.addEventListener('click', () => {
+      chosen.has(a.id) ? chosen.delete(a.id) : chosen.add(a.id);
+      b.setAttribute('aria-pressed', chosen.has(a.id) ? 'true' : 'false');
+      renderLineup();
+    });
+    exAddons.appendChild(b);
+  });
+}
+
+function renderLineup() {
+  const pkg = PACKAGES[currentPkg];
+  exLabel.textContent = `The ${pkg.name} includes`;
+  let html = pkg.items.map(([ic, t]) => `<div class="ex-item">${icon(ic)}<span>${t}</span></div>`).join('');
+  const picked = ADDONS.filter(a => chosen.has(a.id));
+  html += picked.map(a => `<div class="ex-item addon">${icon(a.icon)}<em>Add-on</em><span>${a.t}</span></div>`).join('');
+  exLineup.innerHTML = html;
+  exSummary.textContent = picked.length
+    ? `${pkg.name}, with ${picked.map(a => a.t.toLowerCase()).join(', ')}.`
+    : `${pkg.name}. Add anything you’d like, or discuss it with us first.`;
+}
+
+function selectPkg(key) {
+  currentPkg = key;
+  exPkgBtns.forEach(b => {
+    const on = b.dataset.pkg === key;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-checked', on ? 'true' : 'false');
+  });
+  renderAddons();
+  renderLineup();
+}
+
+if (exLineup) {
+  exPkgBtns.forEach(b => b.addEventListener('click', () => selectPkg(b.dataset.pkg)));
+  document.querySelectorAll('.pkg-see').forEach(a => a.addEventListener('click', () => selectPkg(a.dataset.pkg)));
+  selectPkg(currentPkg);
+
+  // Carry the selection into the enquiry form
+  let autoFilled = '';
+  exCta.addEventListener('click', () => {
+    const msg = document.getElementById('fmessage');
+    const rel = document.getElementById('frelation');
+    const pkg = PACKAGES[currentPkg];
+    const picked = ADDONS.filter(a => chosen.has(a.id)).map(a => a.t);
+    const text = `I'm interested in the ${pkg.name}` + (picked.length ? `, with: ${picked.join(', ')}.` : '.') + '\n\n';
+    if (msg && (msg.value.trim() === '' || msg.value === autoFilled)) { msg.value = text; autoFilled = text; }
+    if (rel && currentPkg === 'institution') rel.value = 'Our company or institution';
+  });
+}
