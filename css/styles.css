@@ -509,3 +509,12 @@ a.video-slot:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
 .spinner{ display:none; width:16px; height:16px; border:2px solid rgba(25,13,12,.3); border-top-color:var(--ink-deep); border-radius:50%; animation:spin .8s linear infinite; }
 .btn.is-sending .spinner{ display:inline-block; }
 @keyframes spin{ to{ transform:rotate(360deg); } }
+/* portraits tab (real photography) */
+.show-visual-photo{ padding:52px 20px 20px; }
+.badge-real{ color:var(--ink-deep); background:var(--gold); border-color:var(--gold); }
+.portrait-gallery{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.portrait-gallery figure{ margin:0; border-radius:4px; overflow:hidden; aspect-ratio:3/2; background:var(--ink-2); }
+.portrait-gallery .pg-main{ grid-column:1 / -1; aspect-ratio:16/9; }
+.portrait-gallery img{ width:100%; height:100%; object-fit:cover; transition:transform .6s ease; }
+.portrait-gallery .pg-main img{ object-position:50% 28%; }
+.portrait-gallery figure:hover img{ transform:scale(1.03); }
