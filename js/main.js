@@ -50,36 +50,96 @@ document.querySelectorAll('.faq-item').forEach(item => {
   });
 });
 
-// Contact form — submits to Formspree (see setup note in the HTML comment above the form)
+// Contact form — sends to FormSubmit's fast (AJAX) endpoint, which emails mukitedigital@gmail.com
 const form = document.getElementById('legacyForm');
 const formFields = document.getElementById('formFields');
 const formSuccess = document.getElementById('formSuccess');
 const formError = document.getElementById('formError');
+const submitBtn = document.getElementById('formSubmit');
+const submitLabel = submitBtn.querySelector('.btn-label');
 
+// One request per browser per day. This stops repeat and accidental double submissions;
+// someone determined could still use a different browser or device.
+const SENT_KEY = 'tlp_enquiry_sent';
+const LIMIT_MS = 24 * 60 * 60 * 1000;
+function lastSent() { try { return Number(localStorage.getItem(SENT_KEY)) || 0; } catch (e) { return 0; } }
+function markSent() { try { localStorage.setItem(SENT_KEY, String(Date.now())); } catch (e) {} }
+function showReceived(already) {
+  formFields.style.display = 'none';
+  if (already) {
+    document.getElementById('successTitle').textContent = 'We already have your request.';
+    document.getElementById('successText').textContent = 'Thank you. We’ll be in touch shortly. If you’d like to add anything, call 0722 782 444.';
+  }
+  formSuccess.classList.add('show');
+}
+if (Date.now() - lastSent() < LIMIT_MS) showReceived(true);
+
+const MESSAGES = {
+  fname: { valueMissing: 'Please enter your name.', tooShort: 'Please enter your full name.' },
+  femail: { valueMissing: 'Please enter your email address.', typeMismatch: 'That email address doesn’t look right. Please check it.' },
+  fphone: { valueMissing: 'Please enter a phone number.', patternMismatch: 'Please enter a phone number with at least 9 digits.' },
+  frelation: { valueMissing: 'Please choose who this story belongs to.' },
+  fmessage: { valueMissing: 'Please tell us a little about the story.', tooShort: 'Please add a little more detail.' }
+};
+function checkField(el) {
+  const msgEl = document.getElementById(el.id + '-msg');
+  if (!msgEl) return true;
+  el.value = el.tagName === 'SELECT' ? el.value : el.value.replace(/^\s+/, '');
+  let msg = '';
+  if (el.id === 'fphone' && el.value) {
+    const digits = el.value.replace(/\D/g, '').length;
+    if (!/^\+?[0-9\s()\-]+$/.test(el.value.trim()) || digits < 9 || digits > 15) msg = MESSAGES.fphone.patternMismatch;
+  }
+  if (!msg && !el.validity.valid) {
+    const m = MESSAGES[el.id] || {};
+    for (const k of ['valueMissing', 'typeMismatch', 'patternMismatch', 'tooShort']) if (el.validity[k]) { msg = m[k] || 'Please check this field.'; break; }
+  }
+  msgEl.textContent = msg;
+  el.classList.toggle('invalid', !!msg);
+  el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+  return !msg;
+}
+const fieldEls = Object.keys(MESSAGES).map(id => document.getElementById(id));
+fieldEls.forEach(el => {
+  el.setAttribute('aria-describedby', el.id + '-msg');
+  el.addEventListener('blur', () => { if (el.value || el.classList.contains('invalid')) checkField(el); });
+  el.addEventListener('input', () => { if (el.classList.contains('invalid')) checkField(el); });
+  el.addEventListener('change', () => { if (el.classList.contains('invalid')) checkField(el); });
+});
+
+let sending = false;
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+  if (sending) return;
   formError.classList.remove('show');
-  const submitBtn = form.querySelector('button[type="submit"]');
-  const originalText = submitBtn.textContent;
-  submitBtn.textContent = 'Sending...';
-  submitBtn.disabled = true;
+  const bad = fieldEls.filter(el => !checkField(el));
+  if (bad.length) { bad[0].focus(); return; }
+  if (Date.now() - lastSent() < LIMIT_MS) { showReceived(true); return; }
 
+  sending = true;
+  submitBtn.disabled = true;
+  submitBtn.classList.add('is-sending');
+  submitLabel.textContent = 'Sending your request…';
   try {
     const response = await fetch(form.action, {
       method: 'POST',
       body: new FormData(form),
       headers: { 'Accept': 'application/json' },
     });
-    if (response.ok) {
-      formFields.style.display = 'none';
-      formSuccess.classList.add('show');
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && String(data.success) !== 'false') {
+      markSent();
+      showReceived(false);
     } else {
       throw new Error('Submission failed');
     }
   } catch (err) {
     formError.classList.add('show');
-    submitBtn.textContent = originalText;
     submitBtn.disabled = false;
+    submitBtn.classList.remove('is-sending');
+    submitLabel.textContent = 'Request a Discovery Call';
+  } finally {
+    sending = false;
   }
 });
 

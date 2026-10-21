@@ -496,3 +496,16 @@ a.video-slot:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
 .video-slot.playing iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
 .vs-label{ text-shadow:0 1px 8px rgba(0,0,0,.6); color:var(--cream); }
 .listen-more{ margin-top:14px; }
+
+/* form: required fields, inline messages, sending state */
+.hp-field{ position:absolute !important; left:-9999px; width:1px; height:1px; opacity:0; }
+.form-note{ font-size:12.5px; color:var(--muted); margin-bottom:18px; }
+.field-msg{ display:block; font-size:12.5px; color:#F2A38F; margin-top:6px; min-height:0; }
+.field-msg:empty{ display:none; }
+.form-row .invalid{ border-color:#E07A62; }
+.form-row select:invalid{ color:var(--muted); }
+.form-row select option{ color:var(--cream); }
+.form .btn:disabled{ cursor:progress; opacity:.85; transform:none; }
+.spinner{ display:none; width:16px; height:16px; border:2px solid rgba(25,13,12,.3); border-top-color:var(--ink-deep); border-radius:50%; animation:spin .8s linear infinite; }
+.btn.is-sending .spinner{ display:inline-block; }
+@keyframes spin{ to{ transform:rotate(360deg); } }

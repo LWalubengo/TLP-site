@@ -684,44 +684,53 @@
           address the first time it receives a submission — that email must
           be opened and confirmed once before requests start arriving.
         -->
-        <form class="form" id="legacyForm" action="https://formsubmit.co/mukitedigital@gmail.com" method="POST">
+        <form class="form" id="legacyForm" action="https://formsubmit.co/ajax/mukitedigital@gmail.com" method="POST" novalidate>
           <input type="hidden" name="_subject" value="New Discovery Call request — The Legacy Project">
           <input type="hidden" name="_template" value="table">
           <input type="hidden" name="_captcha" value="false">
-          <div class="form-success" id="formSuccess">
-            <h3>Thank you, that's received.</h3>
-            <p>We'll be in touch shortly to schedule your free Discovery Call.</p>
+          <!-- Spam trap: hidden from people; bots that fill it in are ignored by FormSubmit -->
+          <input type="text" name="_honey" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="form-success" id="formSuccess" role="status">
+            <h3 id="successTitle">Thank you, that's received.</h3>
+            <p id="successText">We'll be in touch shortly to schedule your free Discovery Call.</p>
           </div>
-          <div class="form-error" id="formError">
-            <p>Something went wrong sending that &mdash; please try again, or call <a href="tel:0722782444" style="color:var(--gold);">0722 782 444</a> directly.</p>
+          <div class="form-error" id="formError" role="alert">
+            <p>Something went wrong sending that. Please try again, or call <a href="tel:0722782444" style="color:var(--gold);">0722 782 444</a> directly.</p>
           </div>
           <div id="formFields">
+            <p class="form-note">All fields are required.</p>
             <div class="form-row">
               <label for="fname">Your name</label>
-              <input type="text" id="fname" name="name" required>
+              <input type="text" id="fname" name="name" required minlength="2" autocomplete="name">
+              <span class="field-msg" id="fname-msg"></span>
             </div>
             <div class="form-row">
               <label for="femail">Email</label>
-              <input type="email" id="femail" name="email" required>
+              <input type="email" id="femail" name="email" required autocomplete="email">
+              <span class="field-msg" id="femail-msg"></span>
             </div>
             <div class="form-row">
               <label for="fphone">Phone</label>
-              <input type="tel" id="fphone" name="phone">
+              <input type="tel" id="fphone" name="phone" required autocomplete="tel" placeholder="e.g. 0722 782 444">
+              <span class="field-msg" id="fphone-msg"></span>
             </div>
             <div class="form-row">
               <label for="frelation">This story belongs to</label>
-              <select id="frelation" name="relation">
+              <select id="frelation" name="relation" required>
+                <option value="" disabled selected>Choose one</option>
                 <option>Myself</option>
                 <option>My parent or grandparent</option>
                 <option>Our family</option>
                 <option>Our company or institution</option>
               </select>
+              <span class="field-msg" id="frelation-msg"></span>
             </div>
             <div class="form-row">
               <label for="fmessage">A little about the story</label>
-              <textarea id="fmessage" name="message" placeholder="Who is it for, and why now?"></textarea>
+              <textarea id="fmessage" name="message" required minlength="10" placeholder="Who is it for, and why now?"></textarea>
+              <span class="field-msg" id="fmessage-msg"></span>
             </div>
-            <button type="submit" class="btn btn-gold">Request a Discovery Call</button>
+            <button type="submit" class="btn btn-gold" id="formSubmit"><span class="spinner" aria-hidden="true"></span><span class="btn-label">Request a Discovery Call</span></button>
           </div>
         </form>
       </div>
